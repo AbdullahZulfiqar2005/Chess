@@ -40,50 +40,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     }
-    function getLegalMoves(row, col) {
-        const piece = board[row][col]; 
-        if (!piece) {
-            console.error(`No piece at row=${row}, col=${col}`);
-            return [];
-        }
-         selectedPiece = piece;
-    let moves = [];
-    
-        if (piece.toLowerCase() === 'p') {
-            highlightPawnMoves(row, col, piece);
-        } else if (piece.toLowerCase() === 'n') {
-            highlightKnightMoves(row, col);
-        } else if (piece.toLowerCase() === 'r') {
-            highlightRookMoves(row, col);
-        } else if (piece.toLowerCase() === 'b') {
-            highlightBishopMoves(row, col);
-        } else if (piece.toLowerCase() === 'q') {
-            highlightQueenMoves(row, col);
-        } else if (piece.toLowerCase() === 'k') {
-            highlightKingMoves(row, col);
-        }
-    
-        highlightedSquares.forEach(square => {
-            const [r, c] = square.split('-').map(Number);
-            moves.push([r, c]);
-        });
-    
-        return moves;
-    }
-    function redrawBoard() {
-        
-        clearHighlights();
-    
-        
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach(cell => {
-            const row = cell.dataset.row;
-            const col = cell.dataset.col;
-            const piece = board[row][col];
-            cell.textContent = piece; 
-        });
-    }
-    
     function createSquare(piece, rowIndex, colIndex) {
         const square = document.createElement("div");
         square.classList.add("square");
@@ -115,6 +71,24 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         boardElement.appendChild(square);
+    }
+
+    function getLegalMoves(row, col) {
+        const piece = board[row][col]; 
+        if (!piece) {
+            console.error(`No piece at row=${row}, col=${col}`);
+            return [];
+        }
+         selectedPiece = piece;
+    let moves = [];
+        selectPiece(piece,row,col);
+    
+        highlightedSquares.forEach(square => {
+            const [r, c] = square.split('-').map(Number);
+            moves.push([r, c]);
+        });
+    
+        return moves;
     }
 
     function selectPiece(piece, row, col) {
@@ -156,15 +130,14 @@ document.addEventListener("DOMContentLoaded", function() {
                     switchTurn();
     
                     if (isCheckmate()) {
+                        clearHighlights();
                         setTimeout(() => {
-                            clearHighlights();
-                            alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate!`);
-                            
-                            redrawBoard();
+                            alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate!`);  
+                            location.reload();                   
                         }, 100);
-                    } else if (isCheck(currentPlayer)) {
+                    } else if (isKingInCheck(tempBoard, currentPlayer)) {
+                        clearHighlights();
                         setTimeout(() => {
-                            clearHighlights();
                             alert(`${currentPlayer} is in check!`);
                         }, 100);
                     }
@@ -326,38 +299,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    function isCheck(player) {
-        const king = player === 'white' ? 'K' : 'k';
-        let kingPosition = null;
-
-        board.forEach((row, rowIndex) => {
-            row.forEach((piece, colIndex) => {
-                if (piece === king) {
-                    kingPosition = [rowIndex, colIndex];
-                }
-            });
-        });
-
-        if (!kingPosition) {
-            return false; 
-        }
-
-        const [kingRow, kingCol] = kingPosition;
-        const opponentPieces = player === 'white' ? 'rnbqkp' : 'RNBQKP';
-
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                const piece = board[row][col];
-                if (opponentPieces.includes(piece)) {
-                    if (canPieceAttack(piece, row, col, kingRow, kingCol)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     function isKingInCheck(boardState, player) {
         const king = player === 'white' ? 'K' : 'k';
         let kingPosition = null;
@@ -397,9 +338,8 @@ document.addEventListener("DOMContentLoaded", function() {
     
         switch (piece.toLowerCase()) {
             case 'p':
-                const direction = piece === 'p' ? 1 : -1;
-                if (rowDiff === 1 && colDiff === 1 && boardState[toRow][toCol] !== ' ' &&
-                    ((piece === 'p' && toRow > fromRow) || (piece === 'P' && toRow < fromRow))) {
+                if (rowDiff === 1 && colDiff === 1  && boardState[toRow][toCol] !== ' ' &&
+                    ((piece === 'p' && toRow < fromRow) || (piece === 'P' && toRow > fromRow))) {
                     return true; 
                 }
                 break;
@@ -467,8 +407,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 break;
     
-            default:
-                return false;
+            // default:
+            //     return false;
         }
         return false;
     }
@@ -487,7 +427,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
       function isCheckmate() {
         const player = currentPlayer;
-        const king = player === 'white' ? 'K' : 'k';
+        const king = player === 'white' ? 'k' : 'K';
         let kingPosition = null;
     
         for (let row = 0; row < 8; row++) {
