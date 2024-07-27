@@ -1,9 +1,9 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const boardElement = document.getElementById("chessboard");
     let selectedPiece = null;
     let selectedPiecePosition = null;
     let highlightedSquares = new Set();
-    let currentPlayer = 'white'; 
+    let currentPlayer = 'white';
 
     let board = [
         ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     function drawBoard() {
-        boardElement.innerHTML = ''; 
+        boardElement.innerHTML = '';
 
         board.forEach((row, rowIndex) => {
             row.forEach((piece, colIndex) => {
@@ -74,20 +74,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function getLegalMoves(row, col) {
-        const piece = board[row][col]; 
+        const piece = board[row][col];
         if (!piece) {
             console.error(`No piece at row=${row}, col=${col}`);
             return [];
         }
-         selectedPiece = piece;
-    let moves = [];
-        selectPiece(piece,row,col);
-    
+        selectedPiece = piece;
+        let moves = [];
+        selectPiece(piece, row, col);
+
         highlightedSquares.forEach(square => {
             const [r, c] = square.split('-').map(Number);
             moves.push([r, c]);
         });
-    
+
         return moves;
     }
 
@@ -98,9 +98,9 @@ document.addEventListener("DOMContentLoaded", function() {
         highlightedSquares.clear();
         console.log("Piece Selected:", selectedPiece);
         console.log("Selected Piece Position:", selectedPiecePosition);
-    
+
         if (piece !== ' ') {
-            if ((currentPlayer === 'white' && piece === piece.toUpperCase()) || 
+            if ((currentPlayer === 'white' && piece === piece.toUpperCase()) ||
                 (currentPlayer === 'black' && piece === piece.toLowerCase())) {
                 if (piece.toLowerCase() === 'p') highlightPawnMoves(row, col, piece);
                 else if (piece.toLowerCase() === 'n') highlightKnightMoves(row, col);
@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     }
-    
+
 
     function movePiece(row, col) {
         if (isValidSquare(row, col) && selectedPiece) {
@@ -119,51 +119,48 @@ document.addEventListener("DOMContentLoaded", function() {
                 const tempBoard = JSON.parse(JSON.stringify(board));
                 tempBoard[row][col] = selectedPiece;
                 tempBoard[selectedPiecePosition[0]][selectedPiecePosition[1]] = ' ';
-    
+
                 if (!isKingInCheck(tempBoard, currentPlayer)) {
                     board = tempBoard;
                     drawBoard();
                     clearHighlights();
                     selectedPiece = null;
                     selectedPiecePosition = null;
-    
+
                     switchTurn();
-    
+
                     if (isCheckmate()) {
                         clearHighlights();
                         setTimeout(() => {
-                            alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate!`);  
-                            location.reload();                   
+                            alert(`${currentPlayer === 'white' ? 'Black' : 'White'} wins by checkmate!`);
+                            location.reload();
                         }, 100);
                     } else if (isKingInCheck(tempBoard, currentPlayer)) {
                         clearHighlights();
-                        setTimeout(() => {
-                            alert(`${currentPlayer} is in check!`);
-                        }, 100);
                     }
                 }
             }
         }
     }
-    
-   
+
+
     function canMoveTo(row, col) {
         if (!isValidSquare(row, col)) {
             return false;
         }
-    
+
         if (!selectedPiecePosition || selectedPiecePosition.length < 2) {
             return false;
         }
-    
+
         const piece = board[selectedPiecePosition[0]][selectedPiecePosition[1]];
-    
+
         if (!piece) {
             return false;
         }
-    
+
         const targetPiece = board[row][col];
-    
+
         if (targetPiece === ' ') {
             return true;
         } else {
@@ -172,8 +169,8 @@ document.addEventListener("DOMContentLoaded", function() {
             return isWhitePiece !== isTargetWhitePiece;
         }
     }
-    
-    
+
+
     function switchTurn() {
         currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
     }
@@ -302,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function isKingInCheck(boardState, player) {
         const king = player === 'white' ? 'K' : 'k';
         let kingPosition = null;
-    
+
         boardState.forEach((row, rowIndex) => {
             row.forEach((piece, colIndex) => {
                 if (piece === king) {
@@ -310,18 +307,18 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
         });
-    
+
         if (!kingPosition) {
-            return false; 
+            return false;
         }
-    
+
         const [kingRow, kingCol] = kingPosition;
         const opponentPieces = player === 'white' ? 'rnbqkp' : 'RNBQKP';
-    
+
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 const piece = boardState[row][col];
-                if (opponentPieces.includes(piece) && boardState[row][col]) { 
+                if (opponentPieces.includes(piece) && boardState[row][col]) {
                     if (canPieceAttack(piece, row, col, kingRow, kingCol, boardState)) {
                         return true;
                     }
@@ -330,26 +327,26 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return false;
     }
-    
+
 
     function canPieceAttack(piece, fromRow, fromCol, toRow, toCol, boardState = board) {
         const rowDiff = Math.abs(toRow - fromRow);
         const colDiff = Math.abs(toCol - fromCol);
-    
+
         switch (piece.toLowerCase()) {
             case 'p':
-                if (rowDiff === 1 && colDiff === 1  && boardState[toRow][toCol] !== ' ' &&
+                if (rowDiff === 1 && colDiff === 1 && boardState[toRow][toCol] !== ' ' &&
                     ((piece === 'p' && toRow < fromRow) || (piece === 'P' && toRow > fromRow))) {
-                    return true; 
+                    return true;
                 }
                 break;
-    
-            case 'n': 
+
+            case 'n':
                 if ((rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2)) {
-                    return true; 
+                    return true;
                 }
                 break;
-    
+
             case 'r':
                 if (rowDiff === 0 || colDiff === 0) {
                     let stepRow = rowDiff === 0 ? 0 : (toRow - fromRow) / rowDiff;
@@ -358,7 +355,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     let currentCol = fromCol + stepCol;
                     while (currentRow !== toRow || currentCol !== toCol) {
                         if (boardState[currentRow][currentCol] !== ' ') {
-                            return false; 
+                            return false;
                         }
                         currentRow += stepRow;
                         currentCol += stepCol;
@@ -366,8 +363,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     return true;
                 }
                 break;
-    
-            case 'b': 
+
+            case 'b':
                 if (rowDiff === colDiff) {
                     let stepRow = (toRow - fromRow) / rowDiff;
                     let stepCol = (toCol - fromCol) / colDiff;
@@ -375,16 +372,16 @@ document.addEventListener("DOMContentLoaded", function() {
                     let currentCol = fromCol + stepCol;
                     while (currentRow !== toRow || currentCol !== toCol) {
                         if (boardState[currentRow][currentCol] !== ' ') {
-                            return false; 
+                            return false;
                         }
                         currentRow += stepRow;
                         currentCol += stepCol;
                     }
-                    return true; 
+                    return true;
                 }
                 break;
-    
-            case 'q': 
+
+            case 'q':
                 if (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) {
                     let stepRow = rowDiff === 0 ? 0 : (toRow - fromRow) / rowDiff;
                     let stepCol = colDiff === 0 ? 0 : (toCol - fromCol) / colDiff;
@@ -392,44 +389,41 @@ document.addEventListener("DOMContentLoaded", function() {
                     let currentCol = fromCol + stepCol;
                     while (currentRow !== toRow || currentCol !== toCol) {
                         if (boardState[currentRow][currentCol] !== ' ') {
-                            return false; 
+                            return false;
                         }
                         currentRow += stepRow;
                         currentCol += stepCol;
                     }
-                    return true; 
-                }
-                break;
-    
-            case 'k': 
-                if (rowDiff <= 1 && colDiff <= 1) {
                     return true;
                 }
                 break;
-    
-            // default:
-            //     return false;
+
+            case 'k':
+                if (rowDiff <= 1 && colDiff <= 1) {
+                    return true;
+                }
+                break
         }
         return false;
     }
     function getKingMoves(row, col) {
         const moves = [
-          [1, 0], [-1, 0], [0, 1], [0, -1],
-          [1, 1], [1, -1], [-1, 1], [-1, -1]
+            [1, 0], [-1, 0], [0, 1], [0, -1],
+            [1, 1], [1, -1], [-1, 1], [-1, -1]
         ];
-    
-        return moves.filter(([dx, dy]) => {
-          const newRow = row + dx;
-          const newCol = col + dy;
-          return isValidSquare(newRow, newCol) && canMoveTo(newRow, newCol);
-        });
-      }
 
-      function isCheckmate() {
+        return moves.filter(([dx, dy]) => {
+            const newRow = row + dx;
+            const newCol = col + dy;
+            return isValidSquare(newRow, newCol) && canMoveTo(newRow, newCol);
+        });
+    }
+
+    function isCheckmate() {
         const player = currentPlayer;
         const king = player === 'white' ? 'k' : 'K';
         let kingPosition = null;
-    
+
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 if (board[row][col] === king) {
@@ -439,19 +433,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
             if (kingPosition) break;
         }
-    
+
         if (!kingPosition) {
             console.error('King not found on the board.');
-            return false; 
+            return false;
         }
-    
+
         const [kingRow, kingCol] = kingPosition;
-    
-        
+
+
         if (!isKingInCheck(board, player)) {
-            return false; 
+            return false;
         }
-    
+
         const kingMoves = getKingMoves(kingRow, kingCol);
         for (const [newRow, newCol] of kingMoves) {
             if (canMoveTo(newRow, newCol)) {
@@ -464,11 +458,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         }
-            for (let row = 0; row < 8; row++) {
+        for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
                 const piece = board[row][col];
                 if ((player === 'white' && piece === piece.toUpperCase()) || (player === 'black' && piece === piece.toLowerCase())) {
-                    if (piece === king) continue; 
+                    if (piece === king) continue;
                     const legalMoves = getLegalMoves(row, col);
                     for (const [moveRow, moveCol] of legalMoves) {
                         const tempBoard = JSON.parse(JSON.stringify(board));
@@ -476,17 +470,17 @@ document.addEventListener("DOMContentLoaded", function() {
                         tempBoard[row][col] = ' ';
                         if (!isKingInCheck(tempBoard, player)) {
                             console.log(`Piece at [${row}, ${col}] can move to [${moveRow}, ${moveCol}] and block/checkmate.`);
-                            return false; 
+                            return false;
                         }
                     }
                 }
             }
         }
-    
+
         console.log('Checkmate detected.');
         return true;
     }
     
-    
+
     drawBoard();
 });
